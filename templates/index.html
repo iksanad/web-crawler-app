@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Crawler & Scraper</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #697386;
+      --line: #e5e9f0;
+      --blue: #315ee8;
+      --blue-dark: #244ac2;
+      --green: #16865b;
+      --red: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    .container {
+      width: min(1080px, calc(100% - 32px));
+      margin: 42px auto;
+    }
+
+    .header { margin-bottom: 26px; }
+
+    h1 {
+      margin: 8px 0;
+      font-size: clamp(28px, 5vw, 40px);
+      letter-spacing: -.04em;
+    }
+    h1 span { color: var(--blue); }
+
+    .header p,
+    .section-heading p {
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 30px rgba(25, 40, 75, .04);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    h2 { font-size: 18px; margin: 0; }
+    .section-heading p { font-size: 13px; }
+
+    .status-pill {
+      white-space: nowrap;
+      background: #eef1f6;
+      color: #536078;
+      padding: 7px 10px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 16px 0 7px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #d8deea;
+      border-radius: 9px;
+      padding: 12px 13px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(49, 94, 232, .10);
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .field-grid label { margin-top: 16px; }
+
+    small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    .info-box {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #f1f5ff;
+      color: #263c79;
+      font-size: 13px;
+    }
+    .info-box p { margin: 5px 0 0; line-height: 1.5; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button,
+    .button {
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .primary { background: var(--blue); color: #fff; }
+    .primary:hover { background: var(--blue-dark); }
+    .primary:disabled { opacity: .55; cursor: wait; }
+
+    .secondary { color: #344054; background: #edf0f5; }
+    .disabled { opacity: .45; pointer-events: none; }
+
+    .message {
+      min-height: 18px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 24px;
+    }
+
+    .progress-track {
+      height: 8px;
+      border-radius: 10px;
+      background: #edf0f5;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    .progress-track div {
+      width: 0;
+      height: 100%;
+      background: var(--blue);
+      transition: width .25s;
+    }
+    .progress-caption {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 7px;
+    }
+
+    .current-url {
+      color: var(--muted);
+      font-size: 11px;
+      margin: 15px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0 10px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .page-size-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .page-size-label select {
+      width: auto;
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 560px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      min-width: 560px;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      max-width: 260px;
+      overflow-wrap: anywhere;
+    }
+    th {
+      background: #f8f9fc;
+      color: #596579;
+      font-size: 11px;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .page-button {
+      padding: 8px 11px;
+      color: #344054;
+      background: #edf0f5;
+      font-size: 11px;
+    }
+    .page-button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .errors {
+      color: var(--red);
+      font-size: 11px;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 10px 0 24px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 620px) {
+      .container { margin: 24px auto; }
+      .panel { padding: 17px; }
+      .field-grid,
+      .stats { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .section-heading { flex-direction: column; }
+      .table-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .pagination { justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>Web Crawler <span>&</span> Scraper</h1>
+      <p>Telusuri halaman website, ekstrak informasi, dan simpan hasilnya ke CSV.</p>
+    </header>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h2>Konfigurasi crawling</h2>
+          <p>Masukkan website dan batas proses yang ingin digunakan.</p>
+        </div>
+        <span class="status-pill" id="statusPill">Belum berjalan</span>
+      </div>
+
+      <form id="crawlerForm">
+        <label for="preset">Website tugas</label>
+        <select id="preset">
+          <option value="">Pilih website atau masukkan URL manual</option>
+          {% for key, value in presets.items() %}
+          <option value="{{ value }}">{{ key|capitalize }} — {{ value }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="url">URL website</label>
+        <input id="url" type="url" placeholder="https://example.com" required>
+
+        <div class="field-grid">
+          <div>
+            <label for="maxPages">Maksimal halaman</label>
+            <input id="maxPages" type="number" min="1" max="500" value="30" required>
+            <small>Batas halaman yang akan dikunjungi (1–500).</small>
+          </div>
+          <div>
+            <label for="maxDepth">Kedalaman crawling</label>
+            <input id="maxDepth" type="number" min="0" max="10" value="2" required>
+            <small>Halaman awal dihitung sebagai kedalaman 0.</small>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>Metode: Crawling + Scraping</strong>
+          <p>Aplikasi akan menemukan link internal secara bertahap, lalu mengambil data sesuai struktur website yang dipilih.</p>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="startButton" type="submit">Mulai proses</button>
+          <a class="button secondary disabled" id="downloadButton" href="#" aria-disabled="true">Unduh CSV</a>
+        </div>
+        <div class="message" id="message" role="status"></div>
+      </form>
+    </section>
+
+    <section class="panel results">
+      <div class="section-heading">
+        <div>
+          <h2>Hasil proses</h2>
+          <p>Perkembangan crawling dan data yang berhasil diekstrak.</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span>Halaman dikunjungi</span><strong id="pagesCount">0</strong></div>
+        <div class="stat"><span>Data diekstrak</span><strong id="dataCount">0</strong></div>
+        <div class="stat"><span>Kedalaman terakhir</span><strong id="depthCount">0</strong></div>
+      </div>
+
+      <div class="progress-track"><div id="progressBar"></div></div>
+      <div class="progress-caption">
+        <span id="progressText">0%</span>
+        <span id="limitText">Batas: 30 halaman</span>
+      </div>
+      <div class="current-url" id="currentUrl">Belum ada halaman yang diproses.</div>
+
+      <div class="table-toolbar">
+        <div id="tableInfo">Belum ada data untuk ditampilkan.</div>
+        <label class="page-size-label" for="pageSize">Baris per halaman
+          <select id="pageSize">
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead id="previewHead">
+            <tr><th>Hasil ekstraksi akan ditampilkan di sini</th></tr>
+          </thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <button type="button" class="page-button" id="prevPage" disabled>Sebelumnya</button>
+        <span id="pageInfo">Halaman 0 dari 0</span>
+        <button type="button" class="page-button" id="nextPage" disabled>Berikutnya</button>
+      </div>
+
+      <div id="errorArea" class="errors"></div>
+    </section>
+
+    <footer>
+      Gunakan hanya pada website yang mengizinkan akses otomatis. Aplikasi yang support robots.txt dan menerapkan jeda antar-request.
+    </footer>
+  </main>
+
+  <script>
+    const form = document.getElementById("crawlerForm");
+    const preset = document.getElementById("preset");
+    const urlInput = document.getElementById("url");
+    const startButton = document.getElementById("startButton");
+    const downloadButton = document.getElementById("downloadButton");
+    const pageSizeSelect = document.getElementById("pageSize");
+    const prevPageButton = document.getElementById("prevPage");
+    const nextPageButton = document.getElementById("nextPage");
+
+    let activeJob = null;
+    let pollTimer = null;
+    let currentTablePage = 1;
+    let currentPerPage = 10;
+    let lastKnownStatus = null;
+
+    // ---------- Event: pagination & preset ----------
+    pageSizeSelect.addEventListener("change", () => {
+      currentPerPage = Number(pageSizeSelect.value);
+      currentTablePage = 1;
+      loadTablePage();
+    });
+
+    prevPageButton.addEventListener("click", () => {
+      if (currentTablePage > 1) {
+        currentTablePage--;
+        loadTablePage();
+      }
+    });
+
+    nextPageButton.addEventListener("click", () => {
+      currentTablePage++;
+      loadTablePage();
+    });
+
+    preset.addEventListener("change", () => {
+      if (preset.value) urlInput.value = preset.value;
+    });
+
+    // ---------- Event: mulai crawling ----------
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearInterval(pollTimer);
+
+      downloadButton.classList.add("disabled");
+      downloadButton.setAttribute("aria-disabled", "true");
+      downloadButton.href = "#";
+      startButton.disabled = true;
+      currentTablePage = 1;
+
+      resetUI();
+
+      setMessage("Mengirim konfigurasi...");
+      setStatus("Menyiapkan");
+
+      const payload = {
+        url: urlInput.value.trim(),
+        max_pages: Number(document.getElementById("maxPages").value),
+        max_depth: Number(document.getElementById("maxDepth").value)
+      };
+
+      try {
+        const response = await fetch("/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Gagal memulai proses.");
+
+        activeJob = data.job_id;
+        setMessage("Proses berjalan. Jangan tutup halaman ini sampai selesai.");
+        pollTimer = setInterval(checkStatus, 1000);
+        checkStatus();
+      } catch (error) {
+        setMessage(error.message);
+        startButton.disabled = false;
+        setStatus("Gagal");
+      }
+    });
+
+    // ---------- Polling status ----------
+    async function checkStatus() {
+      if (!activeJob) return;
+
+      try {
+        const response = await fetch(`/status/${activeJob}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error("Tidak dapat membaca status proses.");
+
+        document.getElementById("pagesCount").textContent = data.pages_crawled;
+        document.getElementById("dataCount").textContent = data.data_extracted;
+        document.getElementById("depthCount").textContent = data.depth;
+        document.getElementById("limitText").textContent = `Batas: ${data.max_pages} halaman`;
+
+        const percent = Math.min(100, Math.round(data.pages_crawled / data.max_pages * 100));
+        document.getElementById("progressBar").style.width = `${percent}%`;
+        document.getElementById("progressText").textContent = `${percent}%`;
+        document.getElementById("currentUrl").textContent = data.current_url || data.message;
+
+        lastKnownStatus = data.status;
+        await loadTablePage();
+        renderErrors(data.errors || []);
+        setStatus(data.status === "completed" ? "Selesai" : "Berjalan");
+
+        if (data.status === "completed") {
+          clearInterval(pollTimer);
+          startButton.disabled = false;
+          setMessage(`Selesai. ${data.pages_crawled} halaman dikunjungi dan ${data.data_extracted} data diekstrak.`);
+          downloadButton.href = `/download/${activeJob}`;
+          downloadButton.classList.remove("disabled");
+          downloadButton.setAttribute("aria-disabled", "false");
+        }
+      } catch (error) {
+        clearInterval(pollTimer);
+        startButton.disabled = false;
+        setMessage(error.message);
+        setStatus("Terhenti");
+      }
+    }
+
+    // ---------- Tabel hasil ----------
+    async function loadTablePage() {
+      if (!activeJob) return;
+
+      try {
+        const response = await fetch(
+          `/data/${activeJob}?page=${currentTablePage}&per_page=${currentPerPage}`
+        );
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Gagal memuat data tabel.");
+
+        currentTablePage = data.page;
+
+        const head = document.getElementById("previewHead");
+        const body = document.getElementById("previewBody");
+
+        if (!data.fields.length) {
+          head.innerHTML = "<tr><th>Belum ada data yang berhasil diekstrak</th></tr>";
+          body.innerHTML = "";
+        } else {
+          head.innerHTML = `<tr>${data.fields
+            .map(key => `<th>${escapeHtml(key)}</th>`)
+            .join("")}</tr>`;
+          body.innerHTML = data.rows
+            .map(row =>
+              `<tr>${data.fields
+                .map(key => `<td>${escapeHtml(String(row[key] ?? ""))}</td>`)
+                .join("")}</tr>`
+            )
+            .join("");
+        }
+
+        document.getElementById("tableInfo").textContent = data.total
+          ? `Menampilkan ${data.start}–${data.end} dari ${data.total} data`
+          : "Belum ada data untuk ditampilkan.";
+        document.getElementById("pageInfo").textContent =
+          `Halaman ${data.total ? data.page : 0} dari ${data.total_pages}`;
+
+        prevPageButton.disabled = data.page <= 1 || data.total === 0;
+        nextPageButton.disabled = data.page >= data.total_pages || data.total === 0;
+      } catch (error) {
+        document.getElementById("tableInfo").textContent = error.message;
+      }
+    }
+
+    // ---------- Helper ----------
+    function resetUI() {
+      document.getElementById("pagesCount").textContent = "0";
+      document.getElementById("dataCount").textContent = "0";
+      document.getElementById("depthCount").textContent = "0";
+      document.getElementById("progressBar").style.width = "0%";
+      document.getElementById("progressText").textContent = "0%";
+      document.getElementById("previewHead").innerHTML =
+        "<tr><th>Menunggu data hasil ekstraksi...</th></tr>";
+      document.getElementById("previewBody").innerHTML = "";
+      document.getElementById("tableInfo").textContent =
+        "Belum ada data untuk ditampilkan.";
+      document.getElementById("pageInfo").textContent = "Halaman 0 dari 0";
+      prevPageButton.disabled = true;
+      nextPageButton.disabled = true;
+    }
+
+    function renderErrors(errors) {
+      const area = document.getElementById("errorArea");
+      area.innerHTML = errors.length
+        ? `<strong>Catatan (${errors.length}):</strong><br>` +
+          errors
+            .slice(-5)
+            .map(e => `${escapeHtml(e.url)} — ${escapeHtml(e.error)}`)
+            .join("<br>")
+        : "";
+    }
+
+    function escapeHtml(value) {
+      return value.replace(
+        /[&<>"']/g,
+        ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[ch])
+      );
+    }
+
+    function setMessage(message) {
+      document.getElementById("message").textContent = message;
+    }
+
+    function setStatus(status) {
+      document.getElementById("statusPill").textContent = status;
+    }
+  </script>
+</body>
+</html>
